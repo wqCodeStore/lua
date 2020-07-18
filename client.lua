@@ -46,6 +46,13 @@ MessageEvent.ClientEventCallBack("gameWin"):Connect(function()
 	showContril()
 end)
 
+reGame.OnClick:Connect(function() -- 点击UiButton触发事件
+	coutDownNum = 100
+	-- 这里应该不能用复位吧
+	countDwomTimer:Start()
+	-- 向服务端通信，重新生成水果，重新生成陨石
+	MessageEvent.FireServer("reGame",11111)
+end)
 countDwomTimer = RWTimer:Create(countDownReduce,1,100)
 countDwomTimer:Start()
 

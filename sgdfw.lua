@@ -1,6 +1,9 @@
--- 陨石快砸下来了，尽快攒够能量逃离
+-- 陨石快砸下来了，尽快攒够能量逃离   
+--  服务端负责生成水果陨石 和计算分数 
 math.randomseed(tostring(os.time()):reverse():sub(1, 7))
 local gameTime = 100  -- 总游戏时间
+-- 获取事件对象
+local eventBus = WorkSpace.eventBus
 local createrPartTimer --创建水果的定时器
 -- 游戏倒计时定时器  
 local countDownTimer 
@@ -97,6 +100,7 @@ local function reSetAttr(attrs,temp)
 			local uid = res.PlayerId
             if attrs.name =="bane" then
                 isWin = false
+
                 -- 清除水果生成
                 createrPartTimer:Stop()
 				MessageEvent.FireClient(uid,"changeEnergy",energyTotal)
@@ -126,7 +130,6 @@ local function reSetAttr(attrs,temp)
             end
             -- 如果有速度
             if attrs.speed then
-              
                 res.MoveSpeed = attrs.speed
                 wait(3) -- 三秒后恢复原速度
                 res.MoveSpeed  = 4
@@ -170,9 +173,11 @@ local function createPart()
 	temp.TriggerEnter:Connect(reSetAttr(attrs,temp))
 end
 
-createrPartTimer = RWTimer:Create(createPart,1,100)
+createrPartTimer = RWTimer:Create(createPart,0.5,200)
+
 countDownTimer = RWTimer:Create(function()
     gameTime = gameTime -1
+    -- 结束游戏
 end,1,100)
 
 -- 生成水果
@@ -182,6 +187,24 @@ countDownTimer:Start()
 -- 陨石动画开始
 local tween = TweenServiceJS:CreateTween(aerolite, tweenInfo,action)
 tween:Play()
+
 tween:OnComplete(function()
-	
+    -- 获取角色id？？ 让客户端显示游戏结束
+     -- 清除水果生成
+     createrPartTimer:Stop()
+    --  动画停止
+     tween:Stop()
 end)
+-- 接收客户端信息
+
+local function reGame(params)
+    print(params)
+    tween:Restart()
+    createrPartTimer:Start()
+    countDownTimer:Start()
+    -- createrPartTimer:Reset(createPart, 0.5, 200)
+    -- countDownTimer:Reset(function ()
+    -- gameTime = gameTime -1
+    -- end, 1, 100)
+end
+MessageEvent.ServerEventCallBack("reGame"):Connect(reGame)
